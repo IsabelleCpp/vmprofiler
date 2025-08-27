@@ -1,0 +1,32 @@
+[project]
+name = "vmprofiler"
+
+cmake-before = """
+    set(UNICORN_ARCH x86)
+"""
+
+[target.vmprofiler]
+type = "static"
+compile-features = ["cxx_std_20"]
+
+sources = [
+    "src/**.cpp",
+    "include/**.hpp"
+]
+
+include-directories = [
+    "include",
+]
+
+link-libraries = [
+    "Zydis",
+    "linux-pe",
+    "unicorn"
+]
+
+compile-definitions = [
+    "NOMINMAX"
+]
+
+[subdir.deps]
+[subdir.tests]
