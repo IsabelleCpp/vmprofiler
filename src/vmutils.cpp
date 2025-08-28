@@ -1,18 +1,18 @@
 #include <vmutils.hpp>
 
 namespace vm::utils {
-void print(const zydis_decoded_instr_t& instr) {
+void print(const zydis_decoded_instr_t& instr, ZydisDecodedOperand operands[ZYDIS_MAX_OPERAND_COUNT]) {
   char buffer[256];
-  ZydisFormatterFormatInstruction(vm::utils::g_formatter.get(), &instr, buffer,
-                                  sizeof(buffer), 0u);
+  ZydisFormatterFormatInstruction(vm::utils::g_formatter.get(), &instr, operands, instr.operand_count, buffer,
+                                  sizeof(buffer), ZYDIS_RUNTIME_ADDRESS_NONE, ZYAN_NULL);
   std::puts(buffer);
 }
 
 void print(zydis_rtn_t& routine) {
   char buffer[256];
-  for (auto [instr, raw, addr] : routine) {
-    ZydisFormatterFormatInstruction(vm::utils::g_formatter.get(), &instr,
-                                    buffer, sizeof(buffer), addr);
+  for (auto [instr, raw, addr, operands] : routine) {
+    ZydisFormatterFormatInstruction(vm::utils::g_formatter.get(), &instr, operands.data(), instr.operand_count,
+                                    buffer, sizeof(buffer), addr, ZYAN_NULL);
     std::printf("> %p %s\n", addr, buffer);
   }
 }
@@ -34,15 +34,15 @@ bool flatten(zydis_rtn_t& routine,
              std::uint32_t max_instrs,
              std::uintptr_t module_base) {
   zydis_decoded_instr_t instr;
+  std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT> operands;
   std::uint32_t instr_cnt = 0u;
 
-  while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(
+  while (ZYAN_SUCCESS(ZydisDecoderDecodeFull(
       vm::utils::g_decoder.get(), reinterpret_cast<void*>(routine_addr), 0x1000,
-      &instr))) {
+      &instr, operands.data()))) {
     if (++instr_cnt > max_instrs)
       return false;
-    // detect if we have already been at this instruction... if so that means
-    // there is a loop and we are going to just return...
+    // TODO: If we have already been at this instruction we should backtrack instead of just return
     if (std::find_if(routine.begin(), routine.end(),
                      [&](const zydis_instr_t& zydis_instr) -> bool {
                        return zydis_instr.addr == routine_addr;
@@ -55,21 +55,21 @@ bool flatten(zydis_rtn_t& routine,
 
     if (is_jmp(instr) ||
         instr.mnemonic == ZYDIS_MNEMONIC_CALL &&
-            instr.operands[0].type != ZYDIS_OPERAND_TYPE_REGISTER) {
-      if (instr.operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER) {
-        routine.push_back({instr, raw_instr, routine_addr});
+            operands[0].type != ZYDIS_OPERAND_TYPE_REGISTER) {
+      if (operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER) {
+        routine.emplace_back(instr, raw_instr, routine_addr, operands);
         return true;
       }
 
       if (keep_jmps)
-        routine.push_back({instr, raw_instr, routine_addr});
-      ZydisCalcAbsoluteAddress(&instr, &instr.operands[0], routine_addr,
+        routine.emplace_back(instr, raw_instr, routine_addr, operands);
+      ZydisCalcAbsoluteAddress(&instr, &operands[0], routine_addr,
                                &routine_addr);
     } else if (instr.mnemonic == ZYDIS_MNEMONIC_RET) {
-      routine.push_back({instr, raw_instr, routine_addr});
+      routine.emplace_back(instr, raw_instr, routine_addr, operands);
       return true;
     } else {
-      routine.push_back({instr, raw_instr, routine_addr});
+      routine.emplace_back(instr, raw_instr, routine_addr, operands);
       routine_addr += instr.length;
     }
 
@@ -97,22 +97,24 @@ void deobfuscate(zydis_rtn_t& routine) {
     return false;
   };
 
-  static const auto _reads = [](zydis_decoded_instr_t& instr,
+  static const auto _reads = [](zydis_decoded_instr_t& instr, 
+                                ZydisDecodedOperand* operands,
                                 zydis_reg_t reg) -> bool {
     for (auto op_idx = 0u; op_idx < instr.operand_count; ++op_idx)
-      if ((instr.operands[op_idx].actions & ZYDIS_OPERAND_ACTION_READ ||
-           instr.operands[op_idx].type == ZYDIS_OPERAND_TYPE_MEMORY) &&
-          _uses_reg(instr.operands[op_idx], reg))
+      if ((operands[op_idx].actions & ZYDIS_OPERAND_ACTION_READ ||
+           operands[op_idx].type == ZYDIS_OPERAND_TYPE_MEMORY) &&
+          _uses_reg(operands[op_idx], reg))
         return true;
     return false;
   };
 
   static const auto _writes = [](zydis_decoded_instr_t& instr,
+                                 ZydisDecodedOperand* operands,
                                  zydis_reg_t reg) -> bool {
     for (auto op_idx = 0u; op_idx < instr.operand_count; ++op_idx)
-      if (instr.operands[op_idx].type == ZYDIS_OPERAND_TYPE_REGISTER &&
-          instr.operands[op_idx].actions & ZYDIS_OPERAND_ACTION_WRITE &&
-          vm::utils::reg::compare(instr.operands[op_idx].reg.value, reg))
+      if (operands[op_idx].type == ZYDIS_OPERAND_TYPE_REGISTER &&
+          operands[op_idx].actions & ZYDIS_OPERAND_ACTION_WRITE &&
+          vm::utils::reg::compare(operands[op_idx].reg.value, reg))
         return true;
     return false;
   };
@@ -147,11 +149,11 @@ void deobfuscate(zydis_rtn_t& routine) {
       }
 
       zydis_reg_t reg = ZYDIS_REGISTER_NONE;
-      // look for operands with writes to a register...
+      // TODO: Properly check all operands with writes to a register...
       for (auto op_idx = 0u; op_idx < itr->instr.operand_count; ++op_idx)
-        if (itr->instr.operands[op_idx].type == ZYDIS_OPERAND_TYPE_REGISTER &&
-            itr->instr.operands[op_idx].actions & ZYDIS_OPERAND_ACTION_WRITE)
-          reg = vm::utils::reg::to64(itr->instr.operands[0].reg.value);
+        if (itr->operands[op_idx].type == ZYDIS_OPERAND_TYPE_REGISTER &&
+            itr->operands[op_idx].actions & ZYDIS_OPERAND_ACTION_WRITE)
+          reg = vm::utils::reg::to64(itr->operands[0].reg.value);
 
       // if this current instruction writes to a register, look ahead in the
       // instruction stream to see if it gets written too before it gets read...
@@ -159,12 +161,12 @@ void deobfuscate(zydis_rtn_t& routine) {
         // find the next place that this register is written too...
         auto write_result = std::find_if(itr + 1, routine.end(),
                                          [&](zydis_instr_t& instr) -> bool {
-                                           return _writes(instr.instr, reg);
+                                           return _writes(instr.instr, instr.operands.data(), reg);
                                          });
 
         auto read_result = std::find_if(itr + 1, write_result,
                                         [&](zydis_instr_t& instr) -> bool {
-                                          return _reads(instr.instr, reg);
+                                          return _reads(instr.instr, instr.operands.data(), reg);
                                         });
 
         // if there is neither a read or a write to this register in the
@@ -178,8 +180,8 @@ void deobfuscate(zydis_rtn_t& routine) {
         // stream...
         if (read_result == write_result && write_result != routine.end()) {
           // if the instruction reads and writes the same register than skip...
-          if (_reads(read_result->instr, reg) &&
-              _writes(read_result->instr, reg))
+          if (_reads(read_result->instr, read_result->operands.data(), reg) &&
+              _writes(read_result->instr, read_result->operands.data(), reg))
             continue;
 
           routine.erase(itr);

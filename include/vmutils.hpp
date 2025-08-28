@@ -25,6 +25,7 @@ struct zydis_instr_t {
   zydis_decoded_instr_t instr;
   std::vector<u8> raw;
   std::uintptr_t addr;
+  std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT> operands;
 };
 
 using zydis_rtn_t = std::vector<zydis_instr_t>;
@@ -39,7 +40,7 @@ inline void init() {
     vm::utils::g_formatter = std::make_shared<ZydisFormatter>();
 
     ZydisDecoderInit(vm::utils::g_decoder.get(), ZYDIS_MACHINE_MODE_LONG_64,
-                     ZYDIS_ADDRESS_WIDTH_64);
+        ZYDIS_STACK_WIDTH_64);
 
     ZydisFormatterInit(vm::utils::g_formatter.get(),
                        ZYDIS_FORMATTER_STYLE_INTEL);
