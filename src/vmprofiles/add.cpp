@@ -13,7 +13,7 @@ profiler_t add = {
                operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                operands[1].type == ZYDIS_OPERAND_TYPE_MEMORY &&
                operands[1].mem.base == vsp &&
-               operands[1].mem.disp.value;
+               operands[1].mem.disp.size;
       },
       // ADD REG, REG
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
@@ -28,7 +28,7 @@ profiler_t add = {
         return instr.mnemonic == ZYDIS_MNEMONIC_MOV &&
                operands[0].type == ZYDIS_OPERAND_TYPE_MEMORY &&
                operands[0].mem.base == vsp &&
-               operands[0].mem.disp.value &&
+               operands[0].mem.disp.size &&
                operands[1].type == ZYDIS_OPERAND_TYPE_REGISTER;
       },
       // PUSHFQ
@@ -66,7 +66,7 @@ profiler_t add = {
             return i.mnemonic == ZYDIS_MNEMONIC_MOV &&
                    instr.operands[0].type == ZYDIS_OPERAND_TYPE_MEMORY &&
                    instr.operands[0].mem.base == vsp &&
-                   instr.operands[0].mem.disp.value &&
+                   instr.operands[0].mem.disp.size &&
                    instr.operands[1].type == ZYDIS_OPERAND_TYPE_REGISTER;
           });
 

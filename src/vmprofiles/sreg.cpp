@@ -8,22 +8,22 @@ profiler_t sreg = {
       LOAD_VALUE,
       // ADD VSP, OFFSET
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr) -> bool {
+         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_ADD &&
-               instr.operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
-               instr.operands[0].reg.value == vsp &&
-               instr.operands[1].type == ZYDIS_OPERAND_TYPE_IMMEDIATE;
+               operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
+               operands[0].reg.value == vsp &&
+               operands[1].type == ZYDIS_OPERAND_TYPE_IMMEDIATE;
       },
       // MOV REG, [VIP]
       IMM_FETCH,
       // MOV [RSP+REG], REG
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr) -> bool {
+         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_MOV &&
-               instr.operands[0].type == ZYDIS_OPERAND_TYPE_MEMORY &&
-               instr.operands[0].mem.base == ZYDIS_REGISTER_RSP &&
-               instr.operands[0].mem.index != ZYDIS_REGISTER_NONE &&
-               instr.operands[1].type == ZYDIS_OPERAND_TYPE_REGISTER;
+               operands[0].type == ZYDIS_OPERAND_TYPE_MEMORY &&
+               operands[0].mem.base == ZYDIS_REGISTER_RSP &&
+               operands[0].mem.index != ZYDIS_REGISTER_NONE &&
+               operands[1].type == ZYDIS_OPERAND_TYPE_REGISTER;
       }}},
     [](zydis_reg_t& vip, zydis_reg_t& vsp,
        hndlr_trace_t& hndlr) -> std::optional<vinstr_t> {
@@ -37,21 +37,21 @@ profiler_t sreg = {
           [&](emu_instr_t& instr) -> bool {
             const auto& i = instr.m_instr;
             return i.mnemonic == ZYDIS_MNEMONIC_ADD &&
-                   i.operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
-                   i.operands[0].reg.value == vsp &&
-                   i.operands[1].type == ZYDIS_OPERAND_TYPE_IMMEDIATE;
+                   instr.operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
+                   instr.operands[0].reg.value == vsp &&
+                   instr.operands[1].type == ZYDIS_OPERAND_TYPE_IMMEDIATE;
           });
 
-      res.stack_size = add_vsp->m_instr.operands[1].imm.value.u * 8;
+      res.stack_size = add_vsp->operands[1].imm.value.u * 8;
       const auto mov_vreg_value = std::find_if(
           hndlr.m_instrs.begin(), hndlr.m_instrs.end(),
           [&](emu_instr_t& instr) -> bool {
             const auto& i = instr.m_instr;
             return i.mnemonic == ZYDIS_MNEMONIC_MOV &&
-                   i.operands[0].type == ZYDIS_OPERAND_TYPE_MEMORY &&
-                   i.operands[0].mem.base == ZYDIS_REGISTER_RSP &&
-                   i.operands[0].mem.index != ZYDIS_REGISTER_NONE &&
-                   i.operands[1].type == ZYDIS_OPERAND_TYPE_REGISTER;
+                   instr.operands[0].type == ZYDIS_OPERAND_TYPE_MEMORY &&
+                   instr.operands[0].mem.base == ZYDIS_REGISTER_RSP &&
+                   instr.operands[0].mem.index != ZYDIS_REGISTER_NONE &&
+                   instr.operands[1].type == ZYDIS_OPERAND_TYPE_REGISTER;
           });
 
       uc_context* backup;
@@ -60,7 +60,7 @@ profiler_t sreg = {
       uc_context_restore(hndlr.m_uc, mov_vreg_value->m_cpu);
 
       const uc_x86_reg idx_reg =
-          vm::instrs::reg_map[mov_vreg_value->m_instr.operands[0].mem.index];
+          vm::instrs::reg_map[mov_vreg_value->operands[0].mem.index];
 
       uc_reg_read(hndlr.m_uc, idx_reg, &res.imm.val);
 
