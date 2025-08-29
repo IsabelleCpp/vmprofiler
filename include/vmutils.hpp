@@ -89,7 +89,7 @@ void print(zydis_rtn_t& routine);
 /// prints a single disassembly view of an instruction...
 /// </summary>
 /// <param name="instr">instruction to print...</param>
-void print(const zydis_decoded_instr_t& instr);
+void print(const zydis_decoded_instr_t& instr, ZydisDecodedOperand operands[ZYDIS_MAX_OPERAND_COUNT]);
 
 /// <summary>
 /// utils pertaining to native registers...

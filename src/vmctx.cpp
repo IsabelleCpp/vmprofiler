@@ -25,16 +25,16 @@ bool vmctx_t::init() {
       m_vm_entry.begin(), m_vm_entry.end(),
       [&](const zydis_instr_t& instr) -> bool {
         return instr.instr.mnemonic == ZYDIS_MNEMONIC_MOV &&
-               instr.instr.operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
-               instr.instr.operands[1].type == ZYDIS_OPERAND_TYPE_MEMORY &&
-               instr.instr.operands[1].mem.base == ZYDIS_REGISTER_RSP &&
-               instr.instr.operands[1].mem.disp.value == 0x90;
+               instr.operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
+               instr.operands[1].type == ZYDIS_OPERAND_TYPE_MEMORY &&
+               instr.operands[1].mem.base == ZYDIS_REGISTER_RSP &&
+               instr.operands[1].mem.disp.value == 0x90;
       });
 
   if (vip_fetch == m_vm_entry.end())
     return false;
 
-  m_vip = vip_fetch->instr.operands[0].reg.value;
+  m_vip = vip_fetch->operands[0].reg.value;
 
   // find the register that will be used for the virtual stack...
   // mov reg, rsp...
@@ -42,15 +42,15 @@ bool vmctx_t::init() {
       m_vm_entry.begin(), m_vm_entry.end(),
       [&](const zydis_instr_t& instr) -> bool {
         return instr.instr.mnemonic == ZYDIS_MNEMONIC_MOV &&
-               instr.instr.operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
-               instr.instr.operands[1].type == ZYDIS_OPERAND_TYPE_REGISTER &&
-               instr.instr.operands[1].reg.value == ZYDIS_REGISTER_RSP;
+               instr.operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
+               instr.operands[1].type == ZYDIS_OPERAND_TYPE_REGISTER &&
+               instr.operands[1].reg.value == ZYDIS_REGISTER_RSP;
       });
 
   if (vsp_fetch == m_vm_entry.end())
     return false;
 
-  m_vsp = vsp_fetch->instr.operands[0].reg.value;
+  m_vsp = vsp_fetch->operands[0].reg.value;
   return true;
 }
 }  // namespace vm

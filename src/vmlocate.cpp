@@ -31,9 +31,9 @@ std::vector<vm_enter_t> get_vm_entries(std::uintptr_t module_base,
       auto res = std::find_if(
           rtn.begin(), rtn.end(), [&](const zydis_instr_t& instr) -> bool {
             return instr.instr.mnemonic == ZYDIS_MNEMONIC_PUSH &&
-                   instr.instr.operands[0].type ==
+                   instr.operands[0].type ==
                        ZYDIS_OPERAND_TYPE_REGISTER &&
-                   instr.instr.operands[0].reg.value == reg;
+                   instr.operands[0].reg.value == reg;
           });
 
       // skip RSP push...
@@ -55,14 +55,14 @@ std::vector<vm_enter_t> get_vm_entries(std::uintptr_t module_base,
     // return instruction...
     const auto& last_instr = rtn[rtn.size() - 1];
     if (!((last_instr.instr.mnemonic == ZYDIS_MNEMONIC_JMP &&
-           last_instr.instr.operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER) ||
+           last_instr.operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER) ||
           last_instr.instr.mnemonic == ZYDIS_MNEMONIC_RET))
       continue;
 
     std::uint8_t num_pushs = 0u;
     std::for_each(rtn.begin(), rtn.end(), [&](const zydis_instr_t& instr) {
       if (instr.instr.mnemonic == ZYDIS_MNEMONIC_PUSH &&
-          instr.instr.operands[0].type == ZYDIS_OPERAND_TYPE_IMMEDIATE)
+          instr.operands[0].type == ZYDIS_OPERAND_TYPE_IMMEDIATE)
         ++num_pushs;
     });
 
@@ -122,19 +122,19 @@ std::vector<vm_enter_t> get_vm_entries(std::uintptr_t module_base,
     // check for a mov reg, rsp
     if (!vm::locate::find(rtn, [&](const zydis_instr_t& instr) -> bool {
           return instr.instr.mnemonic == ZYDIS_MNEMONIC_MOV &&
-                 instr.instr.operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
-                 instr.instr.operands[1].type == ZYDIS_OPERAND_TYPE_REGISTER &&
-                 instr.instr.operands[1].reg.value == ZYDIS_REGISTER_RSP;
+                 instr.operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
+                 instr.operands[1].type == ZYDIS_OPERAND_TYPE_REGISTER &&
+                 instr.operands[1].reg.value == ZYDIS_REGISTER_RSP;
         }))
       continue;
 
     // check for a mov reg, [rsp+0x90]
     if (!vm::locate::find(rtn, [&](const zydis_instr_t& instr) -> bool {
           return instr.instr.mnemonic == ZYDIS_MNEMONIC_MOV &&
-                 instr.instr.operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
-                 instr.instr.operands[1].type == ZYDIS_OPERAND_TYPE_MEMORY &&
-                 instr.instr.operands[1].mem.base == ZYDIS_REGISTER_RSP &&
-                 instr.instr.operands[1].mem.disp.value == 0x90;
+                 instr.operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
+                 instr.operands[1].type == ZYDIS_OPERAND_TYPE_MEMORY &&
+                 instr.operands[1].mem.base == ZYDIS_REGISTER_RSP &&
+                 instr.operands[1].mem.disp.value == 0x90;
         }))
       continue;
 
@@ -150,7 +150,7 @@ std::vector<vm_enter_t> get_vm_entries(std::uintptr_t module_base,
     // entry... its time to build a vm_enter_t... first we check to see if an
     // existing entry already exits...
 
-    auto push_val = (std::uint32_t)rtn[0].instr.operands[0].imm.value.u;
+    auto push_val = (std::uint32_t)rtn[0].operands[0].imm.value.u;
     if (std::find_if(entries.begin(), entries.end(),
                      [&](const vm_enter_t& vm_enter) -> bool {
                        return vm_enter.encrypted_rva == push_val;

@@ -19,21 +19,21 @@ void deobfuscate(hndlr_trace_t& trace) {
   };
 
   static const auto _reads = [](zydis_decoded_instr_t& instr,
-                                zydis_reg_t reg) -> bool {
+                                zydis_reg_t reg, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
     for (auto op_idx = 0u; op_idx < instr.operand_count; ++op_idx)
-      if ((instr.operands[op_idx].actions & ZYDIS_OPERAND_ACTION_READ ||
-           instr.operands[op_idx].type == ZYDIS_OPERAND_TYPE_MEMORY) &&
-          _uses_reg(instr.operands[op_idx], reg))
+      if ((operands[op_idx].actions & ZYDIS_OPERAND_ACTION_READ ||
+           operands[op_idx].type == ZYDIS_OPERAND_TYPE_MEMORY) &&
+          _uses_reg(operands[op_idx], reg))
         return true;
     return false;
   };
 
   static const auto _writes = [](zydis_decoded_instr_t& instr,
-                                 zydis_reg_t reg) -> bool {
+                                 zydis_reg_t reg, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
     for (auto op_idx = 0u; op_idx < instr.operand_count; ++op_idx)
-      if (instr.operands[op_idx].type == ZYDIS_OPERAND_TYPE_REGISTER &&
-          instr.operands[op_idx].actions & ZYDIS_OPERAND_ACTION_WRITE &&
-          vm::utils::reg::compare(instr.operands[op_idx].reg.value, reg))
+      if (operands[op_idx].type == ZYDIS_OPERAND_TYPE_REGISTER &&
+          operands[op_idx].actions & ZYDIS_OPERAND_ACTION_WRITE &&
+          vm::utils::reg::compare(operands[op_idx].reg.value, reg))
         return true;
     return false;
   };
@@ -76,9 +76,9 @@ void deobfuscate(hndlr_trace_t& trace) {
       zydis_reg_t reg = ZYDIS_REGISTER_NONE;
       // look for operands with writes to a register...
       for (auto op_idx = 0u; op_idx < itr->m_instr.operand_count; ++op_idx)
-        if (itr->m_instr.operands[op_idx].type == ZYDIS_OPERAND_TYPE_REGISTER &&
-            itr->m_instr.operands[op_idx].actions & ZYDIS_OPERAND_ACTION_WRITE)
-          reg = vm::utils::reg::to64(itr->m_instr.operands[0].reg.value);
+        if (itr->operands[op_idx].type == ZYDIS_OPERAND_TYPE_REGISTER &&
+            itr->operands[op_idx].actions & ZYDIS_OPERAND_ACTION_WRITE)
+          reg = vm::utils::reg::to64(itr->operands[0].reg.value);
 
       // if this current instruction writes to a register, look ahead in the
       // instruction stream to see if it gets written too before it gets read...
@@ -86,12 +86,12 @@ void deobfuscate(hndlr_trace_t& trace) {
         // find the next place that this register is written too...
         auto write_result = std::find_if(itr + 1, trace.m_instrs.end(),
                                          [&](emu_instr_t& instr) -> bool {
-                                           return _writes(instr.m_instr, reg);
+                                           return _writes(instr.m_instr, reg, instr.operands);
                                          });
 
         auto read_result = std::find_if(itr + 1, write_result,
                                         [&](emu_instr_t& instr) -> bool {
-                                          return _reads(instr.m_instr, reg);
+                                          return _reads(instr.m_instr, reg, instr.operands);
                                         });
 
         // if there is neither a read or a write to this register in the
@@ -107,8 +107,8 @@ void deobfuscate(hndlr_trace_t& trace) {
         if (read_result == write_result &&
             write_result != trace.m_instrs.end()) {
           // if the instruction reads and writes the same register than skip...
-          if (_reads(read_result->m_instr, reg) &&
-              _writes(read_result->m_instr, reg))
+          if (_reads(read_result->m_instr, reg, read_result->operands) &&
+              _writes(read_result->m_instr, reg, read_result->operands))
             continue;
 
           trace.m_instrs.erase(itr);
