@@ -136,7 +136,8 @@ vinstr_t determine(hndlr_trace_t& hndlr) {
               std::find_if(instrs.begin(), instrs.end(),
                            [&](const emu_instr_t& instr) -> bool {
                              const auto& i = instr.m_instr;
-                             return matcher(hndlr.m_vip, hndlr.m_vsp, i);
+                             const auto& op = instr.operands;
+                             return matcher(hndlr.m_vip, hndlr.m_vsp, i, op);
                            });
           if (matched == instrs.end())
             return false;

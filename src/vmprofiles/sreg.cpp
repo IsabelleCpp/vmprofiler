@@ -8,7 +8,7 @@ profiler_t sreg = {
       LOAD_VALUE,
       // ADD VSP, OFFSET
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_ADD &&
                operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                operands[0].reg.value == vsp &&
@@ -18,7 +18,7 @@ profiler_t sreg = {
       IMM_FETCH,
       // MOV [RSP+REG], REG
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_MOV &&
                operands[0].type == ZYDIS_OPERAND_TYPE_MEMORY &&
                operands[0].mem.base == ZYDIS_REGISTER_RSP &&

@@ -6,7 +6,7 @@ profiler_t vmexit = {
     mnemonic_t::vmexit,
     {{// MOV RSP, VSP
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_MOV &&
                operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                operands[0].reg.value == ZYDIS_REGISTER_RSP &&
@@ -15,110 +15,110 @@ profiler_t vmexit = {
       },
       // POP R13
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_POP &&
                operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                operands[0].reg.value == ZYDIS_REGISTER_R13;
       },
       // POP RCX
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_POP &&
                operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                operands[0].reg.value == ZYDIS_REGISTER_RCX;
       },
       // POP RBP
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_POP &&
                operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                operands[0].reg.value == ZYDIS_REGISTER_RBP;
       },
       // POP R8
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_POP &&
                operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                operands[0].reg.value == ZYDIS_REGISTER_R8;
       },
       // POP R15
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_POP &&
                operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                operands[0].reg.value == ZYDIS_REGISTER_R15;
       },
       // POP RDX
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_POP &&
                operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                operands[0].reg.value == ZYDIS_REGISTER_RDX;
       },
       // POP RDI
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_POP &&
                operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                operands[0].reg.value == ZYDIS_REGISTER_RDI;
       },
       // POP R11
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_POP &&
                operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                operands[0].reg.value == ZYDIS_REGISTER_R11;
       },
       // POP RAX
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_POP &&
                operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                operands[0].reg.value == ZYDIS_REGISTER_RAX;
       },
       // POP R9
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_POP &&
                operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                operands[0].reg.value == ZYDIS_REGISTER_R9;
       },
       // POP RSI
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_POP &&
                operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                operands[0].reg.value == ZYDIS_REGISTER_RSI;
       },
       // POP R14
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_POP &&
                operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                operands[0].reg.value == ZYDIS_REGISTER_R14;
       },
       // POP R12
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_POP &&
                operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                operands[0].reg.value == ZYDIS_REGISTER_R12;
       },
       // POP R11
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_POP &&
                operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                operands[0].reg.value == ZYDIS_REGISTER_R11;
       },
       // POPFQ
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_POPFQ;
       },
       // RET
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_RET;
       }}},
     [](zydis_reg_t& vip, zydis_reg_t& vsp, hndlr_trace_t& hndlr)

@@ -8,7 +8,7 @@ profiler_t jmp = {
       LOAD_VALUE,
       // ADD VSP, 8
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_ADD &&
                operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                operands[0].reg.value == vsp &&
@@ -17,7 +17,7 @@ profiler_t jmp = {
       },
       // MOV REG, IMM_64
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_MOV &&
                operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                operands[1].type == ZYDIS_OPERAND_TYPE_IMMEDIATE &&
@@ -25,7 +25,7 @@ profiler_t jmp = {
       },
       // LEA REG, [0x0] ; disp is -7...
       [](const zydis_reg_t vip, const zydis_reg_t vsp,
-         const zydis_decoded_instr_t& instr, std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
+         const zydis_decoded_instr_t& instr, const std::array<ZydisDecodedOperand, ZYDIS_MAX_OPERAND_COUNT>& operands) -> bool {
         return instr.mnemonic == ZYDIS_MNEMONIC_LEA &&
                operands[0].type == ZYDIS_OPERAND_TYPE_REGISTER &&
                operands[1].type == ZYDIS_OPERAND_TYPE_MEMORY &&
